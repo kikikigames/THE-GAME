@@ -6,38 +6,40 @@ using UnityEngine;
 
 public class FPSCameraController : MonoBehaviour
 {
-    [SerializeField] float xRotationSpeed;
-    [SerializeField] float yRotationSpeed;
-    private float horizontalInput;
-    private float verticalInput;
-
-    private float verticalAngle;
-    private float horizontalAngle;
+    [Header("Camera Settings")]
     [SerializeField] Transform playerBody;
-    public bool canRotate;
-
+    [SerializeField] private float xRotationSensitivity;
+    [SerializeField] private float yRotationSensitivity;
     [SerializeField] private float minAngle;
     [SerializeField] private float maxAngle;
 
-    // Start is called before the first frame update
+    //Variables
+    private float horizontalInput;
+    private float verticalInput;
+    private float verticalAngle;
+    private float horizontalAngle;
+
+    //Bools
+    private bool canRotate;
+
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         canRotate = true;
     }
-
-    // Update is called once per frame
     void Update()
     {
         MoveCamera();
     }
-
+    /// <summary>
+    /// Kamera hareketini kontrol eder.
+    /// </summary>
     private void MoveCamera()
     {
         if(canRotate)
         {
-            horizontalInput = Input.GetAxis("Mouse X") * Time.deltaTime * xRotationSpeed;
-            verticalInput = Input.GetAxis("Mouse Y") * Time.deltaTime * yRotationSpeed;
+            horizontalInput = Input.GetAxis("Mouse X") * Time.deltaTime * xRotationSensitivity;
+            verticalInput = Input.GetAxis("Mouse Y") * Time.deltaTime * yRotationSensitivity;
 
             playerBody.Rotate(Vector3.up * horizontalInput);
 

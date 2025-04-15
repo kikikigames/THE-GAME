@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Loot : MonoBehaviour, IInteractable
 {
+    [Header("Loot")]
     [SerializeField] public Item item;
     [SerializeField] public string itemNameText;
     [SerializeField] public string itemDescriptionText;

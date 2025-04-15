@@ -5,18 +5,23 @@ using UnityEngine.UI;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    [Header("References")]
+    [Header("Player Interaction References")]
     [SerializeField] private Inventory playerInventory;
     [SerializeField] private Transform playerCamera;
     [SerializeField] private Transform itemHoldPos;
     [SerializeField] private Transform itemDropPos;
     [SerializeField] private GameObject lootPrefab;
 
-    private IInteractable lastInteractableComp;
-    private GameObject lastInteractedObj;
+    [Header("Player Interaction")]
     [SerializeField] private float range;
     [SerializeField] private KeyCode itemTakeKey = KeyCode.Mouse0;
     [SerializeField] private KeyCode itemDropKey = KeyCode.G;
+
+    //Variables	
+    private IInteractable lastInteractableComp;
+    private GameObject lastInteractedObj;
+
+    //Bools
     private bool canHit;
 
     private void Start()
@@ -30,6 +35,9 @@ public class PlayerInteraction : MonoBehaviour
         DropItem();
         Debug.DrawRay(playerCamera.transform.position, playerCamera.transform.forward*10, Color.green);     
     }
+    /// <summary>
+    /// Item bırakma fonksiyonu. Eğer oyuncunun envanterinde bir item varsa ve bırakma tuşuna basılırsa itemi bırakır.
+    /// </summary>
     private void DropItem()
     {
         if(Input.GetKeyDown(itemDropKey) &&playerInventory.Slots[playerInventory.currentSlotId].IsFull() )
@@ -43,6 +51,9 @@ public class PlayerInteraction : MonoBehaviour
             
         }
     }
+    /// <summary>
+    /// Raycast ile etkileşimde bulunma fonksiyonu. Eğer raycast bir objeye çarparsa ve o objede IInteractable componenti varsa etkileşim başlatır.
+    /// </summary>
     private void Shoot()
     {
         RaycastHit hit;

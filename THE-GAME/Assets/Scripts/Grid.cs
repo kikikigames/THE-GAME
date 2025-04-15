@@ -5,32 +5,50 @@ using UnityEngine;
 
 public class Grid : MonoBehaviour
 {
+    [Header("Floor References")]
     [SerializeField] Transform parentFloorTransform;
     [SerializeField] GameObject whiteFloorPrefab;
 
+    [Header("Grid Parameters")]
+    [SerializeField] Vector3 bottomLeft;
     [SerializeField] private LayerMask unwalkableMask;
     [SerializeField] public Vector2 gridWorldSize;
     [SerializeField] public float nodeRadius;
+    
+    //Arrays
     public Node[,] grid;
     public Node[,] gridFloor;
     public Node[,] gridDoor;
-
+    
+    //Variables
     public float nodeDiameter;
-    public int gridSizeX, gridSizeY;
-    [SerializeField] Vector3 bottomLeft;
+    public int gridSizeX, gridSizeZ;
+    [SerializeField] private int corridorLeftOffset;
+    [SerializeField] private int corridorRightOffset;
+    [SerializeField] private int corridorTopOffset;
+    [SerializeField] private int corridorBottomOffset;
+    [SerializeField] private int extraCorridorLeftOffset;
+    [SerializeField] private int extraCorridorRightOffset;
+    [SerializeField] private int extraCorridorTopOffset;
+    [SerializeField] private int extraCorridorBottomOffset;
+    [SerializeField] private int roomLeftOffset;
+    [SerializeField] private int roomRightOffset;
+    [SerializeField] private int roomTopOffset;
+    [SerializeField] private int roomBottomOffset;
 
-    [Header("Door")]
+
+    [Header("DoorPrefabs")]
     [SerializeField] private GameObject doorPrefabUp;
     [SerializeField] private GameObject doorPrefabRight;
+
     void Start()
     {
         nodeDiameter = nodeRadius * 2;
         gridSizeX = Mathf.RoundToInt(gridWorldSize.x / nodeDiameter);
-        gridSizeY = Mathf.RoundToInt(gridWorldSize.y / nodeDiameter);
+        gridSizeZ = Mathf.RoundToInt(gridWorldSize.y / nodeDiameter);
         CreateGrid();
         CreateWalls();
     }
-
     void Update()
     {
         UpdateFloor();
@@ -40,14 +58,14 @@ public class Grid : MonoBehaviour
     /// </summary>
     private void CreateGrid()
     {
-        grid = new Node[gridSizeX, gridSizeY];
+        grid = new Node[gridSizeX, gridSizeZ];
         for (int x = 0; x < gridSizeX; x++)
         {
-            for (int y = 0; y < gridSizeY; y++)
+            for (int y = 0; y < gridSizeZ; y++)
             {
                 Vector3 worldPoint = bottomLeft + Vector3.right * (x * nodeDiameter + nodeRadius) + Vector3.forward * (y * nodeDiameter + nodeRadius);
-                Wall[] walls = CreateWalls(worldPoint);
-                grid[x, y] = new Node(null, FloorType.White, worldPoint, x, y, walls, -1);
+                Wall[] walls = CreateNodeWalls(worldPoint);
+                grid[x, y] = new Node(null, FloorType.whiteFloorRoomId, worldPoint, x, y, walls, -1);
             }
         }
     }
@@ -56,15 +74,15 @@ public class Grid : MonoBehaviour
     /// </summary>
     private void CreateWalls()
     {
-        gridFloor = new Node[gridSizeX, gridSizeY];
+        gridFloor = new Node[gridSizeX, gridSizeZ];
         for (int x = 0; x < gridSizeX; x++)
         {
-            for (int y = 0; y < gridSizeY; y++)
+            for (int y = 0; y < gridSizeZ; y++)
             {
                 Vector3 worldPoint = bottomLeft + Vector3.right * (x * nodeDiameter + nodeRadius) + Vector3.forward * (y * nodeDiameter + nodeRadius);
                 GameObject _floor = Instantiate(whiteFloorPrefab, worldPoint, Quaternion.identity);
-                Wall[] walls = CreateWalls(worldPoint);
-                gridFloor[x, y] = new Node(_floor, FloorType.White, worldPoint, x, y, walls, -1);
+                Wall[] walls = CreateNodeWalls(worldPoint);
+                gridFloor[x, y] = new Node(_floor, FloorType.whiteFloorRoomId, worldPoint, x, y, walls, -1);
                 _floor.transform.SetParent(parentFloorTransform);
             }
         }
@@ -74,7 +92,7 @@ public class Grid : MonoBehaviour
     /// </summary>
     /// <param name="worldPoint"></param>
     /// <returns></returns>
-    private Wall[] CreateWalls(Vector3 worldPoint)
+    private Wall[] CreateNodeWalls(Vector3 worldPoint)
     {
         Wall[] walls = new Wall[4];
         for (int i = 0; i < walls.Length; i++)
@@ -95,18 +113,18 @@ public class Grid : MonoBehaviour
     {
         for (int x = 0; x < gridSizeX; x++)
         {
-            for (int y = 0; y < gridSizeY; y++)
+            for (int y = 0; y < gridSizeZ; y++)
             {
                 gridFloor[x, y] = new Node(gridFloor[x, y].floor.floorGameObject, grid[x, y].floor.floorType, grid[x, y].worldPosition, x, y, grid[x, y].walls, grid[x, y].roomId);
                 if (gridFloor[x, y].floor.floorType == FloorType.Red)
                 {
                     gridFloor[x, y].floor.floorGameObject.transform.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
                 }
-                else if (gridFloor[x, y].floor.floorType == FloorType.White)
+                else if (gridFloor[x, y].floor.floorType == FloorType.whiteFloorRoomId)
                 {
                     gridFloor[x, y].floor.floorGameObject.transform.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
                 }
-                else if (gridFloor[x, y].floor.floorType == FloorType.Yellow)
+                else if (gridFloor[x, y].floor.floorType == FloorType.yellowFloorRoomId)
                 {
                     gridFloor[x, y].floor.floorGameObject.transform.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
                 }
@@ -155,7 +173,7 @@ public class Grid : MonoBehaviour
         {
             for (int j = 0; j < zLocal; j++)
             {
-                if (grid[xRandom + i, zRandom + j].floor.floorType == FloorType.Red)
+                if (grid[xRandom + i, zRandom + j].roomId != -1) // Oda zaten var mı?
                 {
                     return false;
                 }
@@ -197,7 +215,7 @@ public class Grid : MonoBehaviour
                 }
             }
         }
-        CheckRoomDoors(xRandom, zRandom, xLocal, zLocal, room);
+        CreateRoomWalls(xRandom, zRandom, xLocal, zLocal, room);
     }
     /// <summary>
     /// Tüm nodeların komşularına bakarak duvarlar oluşturur.
@@ -207,7 +225,7 @@ public class Grid : MonoBehaviour
     /// <param name="xLocal"></param>
     /// <param name="zLocal"></param>
     /// <param name="room"></param>
-    public void CheckRoomDoors(int xRandom, int zRandom, int xLocal, int zLocal, GameObject room)
+    public void CreateRoomWalls(int xRandom, int zRandom, int xLocal, int zLocal, GameObject room)
     {
         int currentId = -2;
         Node[] nodeNeighbor = new Node[4];
@@ -332,7 +350,18 @@ public class Grid : MonoBehaviour
         }
     }
     /// <summary>
-    /// Komşular bulunur.
+    /// Nodeun verilen posizyona göre komşusunu bulur.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="pos"></param>
+    /// <returns></returns>
+    public Node GetNeighbor(Node node, Vector2 pos)
+    {
+        Vector2 currentPos = new Vector2(node.gridX, node.gridY) + pos;
+        return grid[(int)currentPos.x, (int)currentPos.y];
+    }
+    /// <summary>
+    /// Tüm komşular bulunur. Liste olarak döner. Pathfinding için kullanılır.
     /// </summary>
     /// <param name="node"></param>
     /// <returns></returns>
@@ -353,13 +382,32 @@ public class Grid : MonoBehaviour
             int checkX = node.gridX + directions[i, 0];
             int checkY = node.gridY + directions[i, 1];
 
-            if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeY)
+            if (IsCorridorInsideOfGrid(checkX,checkY))
             {
                 neighbors.Add(grid[checkX, checkY]);
             }
         }
         return neighbors;
     }
+    /// <summary>
+    /// Tüm komşular bulunur. Array olarak döner.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    public Node[] GetNeighborNodes(Node node)
+    {
+        Node[] nodes = new Node[4];
+        nodes[0] = GetNeighbor(node, Vector2.up) != null ? GetNeighbor(node, Vector2.up) : null;
+        nodes[1] = GetNeighbor(node, Vector2.right) != null ? GetNeighbor(node, Vector2.right) : null;
+        nodes[2] = GetNeighbor(node, Vector2.down) != null ? GetNeighbor(node, Vector2.down) : null;
+        nodes[3] = GetNeighbor(node, Vector2.left) != null ? GetNeighbor(node, Vector2.left): null;
+        return nodes;
+    }
+    /// <summary>
+    /// Pathfinding başlangıç ve bitiş noktası için tasarlandı. O noktaların etrafında koridor varsa o duvar deaktive olur.
+    /// </summary>
+    /// <param name="neighbors"></param>
+    /// <param name="currentNode"></param>
     public void CheckPathNeighbors(List<Node> neighbors,Node currentNode)
     {
         for (int i = 0; i < neighbors.Count; i++)
@@ -371,28 +419,43 @@ public class Grid : MonoBehaviour
         }
     }
     /// <summary>
-    /// Nodeun verilen posizyona göre komşusunu bulur.
+    /// Koridorun gridin içinde olup olmadığını kontrol eder.
     /// </summary>
-    /// <param name="node"></param>
-    /// <param name="pos"></param>
+    /// <param name="gridX"></param>
+    /// <param name="gridZ"></param>
     /// <returns></returns>
-    public Node GetNeighbor(Node node, Vector2 pos)
+    public bool IsCorridorInsideOfGrid(int gridX,int gridZ)
     {
-        Vector2 currentPos = new Vector2(node.gridX, node.gridY) + pos;
-        return grid[(int)currentPos.x, (int)currentPos.y];
+       if(gridX <corridorLeftOffset || gridX > gridSizeX - corridorRightOffset || gridZ < corridorBottomOffset || gridZ > gridSizeZ - corridorTopOffset)
+            return false;
+        return true;
     }
     /// <summary>
-    /// Tüm komşuların FloorType renklerini bulur
+    /// Ekstra koridorun gridin içinde olup olmadığını kontrol eder.
     /// </summary>
-    /// <param name="node"></param>
+    /// <param name="gridX"></param>
+    /// <param name="gridZ"></param>
     /// <returns></returns>
-    public FloorType[] GetNeighborColors(Node node)
+     public bool IsExtraCorridorInsideOfGrid(int gridX,int gridZ)
     {
-        FloorType[] floorTypes = new FloorType[4];
-        floorTypes[0] = GetNeighbor(node, Vector2.up) != null ? GetNeighbor(node, Vector2.up).floor.floorType : FloorType.Red;
-        floorTypes[1] = GetNeighbor(node, Vector2.right) != null ? GetNeighbor(node, Vector2.right).floor.floorType : FloorType.Red;
-        floorTypes[2] = GetNeighbor(node, Vector2.down) != null ? GetNeighbor(node, Vector2.down).floor.floorType : FloorType.Red;
-        floorTypes[3] = GetNeighbor(node, Vector2.left) != null ? GetNeighbor(node, Vector2.left).floor.floorType : FloorType.Red;
-        return floorTypes;
+       if(gridX <extraCorridorLeftOffset || gridX > gridSizeX - extraCorridorRightOffset || gridZ < extraCorridorBottomOffset || gridZ > gridSizeZ - extraCorridorTopOffset)
+            return false;
+        return true;
+    }
+    /// <summary>
+    /// Odanın gridin içinde olup olmadığını kontrol eder.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="xLocal"></param>
+    /// <param name="xRandom"></param>
+    /// <param name="z"></param>
+    /// <param name="zLocal"></param>
+    /// <param name="zRandom"></param>
+    /// <returns></returns>
+     public bool IsRoomInsideOfGrid(int x,int xLocal, int xRandom, int z, int zLocal, int zRandom)
+    {
+        if (x < roomLeftOffset || xRandom > x - xLocal -roomRightOffset || z < roomBottomOffset|| zRandom > z - zLocal -roomTopOffset)
+            return false;
+        return true;
     }
 }

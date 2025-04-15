@@ -3,23 +3,33 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [System.Serializable]
-public class Inventory : MonoBehaviour,ISerializationCallbackReceiver
+public class Inventory : MonoBehaviour
 {
+    [Header("Inventory")]
     public InventorySlot[] Slots = new InventorySlot[5];
     [SerializeField] private Transform playerHoldPosition;
+    //Variables
     public int currentSlotId;
     int lastSlotId;
+    //Bools
     public bool canAddItem;
     void Start()
     {
         currentSlotId=0 ;
         lastSlotId=0;
         canAddItem=true;
+        for (int i = 0; i < Slots.Length; i++)
+        {
+            Slots[i].slotId = i;
+        }
     }
     void Update()
     {
         ChooseSlot();
     }
+    /// <summary>
+    /// Slot seçimi için tuşlara basıldığında çağrılır. 1-5 arası slotları seçer.
+    /// </summary>
     private void ChooseSlot()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -50,16 +60,10 @@ public class Inventory : MonoBehaviour,ISerializationCallbackReceiver
         ChangeSelectedSlotColor();
         ChangeItem();
     }
-    public void OnAfterDeserialize()
-    {
-        for (int i = 0; i < Slots.Length; i++)
-        {
-            Slots[i].slotId = i;
-        }
-    }
-    public void OnBeforeSerialize()
-    {
-    }
+    /// <summary>
+    /// Slotlara item ekler. Eğer slot doluysa item eklenemez.
+    /// </summary>
+    /// <param name="item"></param>
     public void AddItem(Item item)
     {
         if(CanAdd())
@@ -73,6 +77,9 @@ public class Inventory : MonoBehaviour,ISerializationCallbackReceiver
             Debug.Log("Slot is full");
         }
     }
+    /// <summary>
+    /// Slotlardan item siler. Eğer slot boşsa item silinemez.
+    /// </summary>
     public void DropItem()
     {
         if (Slots[currentSlotId].IsEmpty())
@@ -89,6 +96,9 @@ public class Inventory : MonoBehaviour,ISerializationCallbackReceiver
             Destroy( playerHoldPosition.GetChild(currentSlotId).GetChild(0).gameObject);
         }
     }
+    /// <summary>
+    /// Slotların rengini değiştirir. Seçilen slotun rengi değişir.
+    /// </summary>
     private void ChangeSelectedSlotColor()
     {
         if (lastSlotId != -1) 
@@ -99,6 +109,9 @@ public class Inventory : MonoBehaviour,ISerializationCallbackReceiver
         Slots[currentSlotId].gameObject.GetComponent<Image>().color=new Color(1, 0.8431373f, 0.6666667f, 1);
         Slots[currentSlotId].gameObject.transform.GetChild(0).GetComponent<Image>().color=new Color(1, 0.8431373f, 0.6666667f, 1);
     }
+    /// <summary>
+    /// Elle tutulan item aktif olur. Son ele alinan slotun itemi gizlenir.
+    /// </summary>
     public void ChangeItem()
     {
         if(lastSlotId != -1)
@@ -107,7 +120,10 @@ public class Inventory : MonoBehaviour,ISerializationCallbackReceiver
         }
         playerHoldPosition.GetChild(currentSlotId).gameObject.SetActive(true);
     }
-
+    /// <summary>
+    /// Item eklenebilir mi? Kontrol eder.
+    /// </summary>
+    /// <returns></returns>
     public bool CanAdd()
     {
         return canAddItem= Slots[currentSlotId].IsEmpty();

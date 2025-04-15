@@ -20,8 +20,8 @@ public class Pathfinding : MonoBehaviour
         Node targetNode = grid.NodeFromWorldPoint(targetPos);
 
         //Başlangıç ve bitiş düğümlerinin FloorType'ını değiştirme (Yoksa A* çalışmaz)
-        startNode.floor.floorType = FloorType.White;
-        targetNode.floor.floorType = FloorType.White;
+        startNode.floor.floorType = FloorType.whiteFloorRoomId;
+        targetNode.floor.floorType = FloorType.whiteFloorRoomId;
 
         if (startNode == null || targetNode == null) //|| !targetNode.walkable
         {
@@ -116,7 +116,7 @@ public class Pathfinding : MonoBehaviour
             if (currentNode.floor.floorType != FloorType.Red) 
             {
                 path.Add(currentNode);
-                currentNode.floor.floorType = FloorType.Yellow;
+                currentNode.floor.floorType = FloorType.yellowFloorRoomId;
                 currentNode.roomId=0;//Path roomId
                 FloorManager.AddYellowFloor(currentNode);
             }

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1393676522689925479}
   - component: {fileID: 8653711270193784061}
   - component: {fileID: 2406053182194130685}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -117,7 +117,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3630811787124743624}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WhiteFloor
   m_TagString: Untagged
   m_Icon: {fileID: 0}

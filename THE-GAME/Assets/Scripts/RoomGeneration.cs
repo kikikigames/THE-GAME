@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
+using JetBrains.Annotations;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -56,7 +57,7 @@ public class RoomGeneration : MonoBehaviour
     {
         roomId=1; //1 den baslayarak odalarin idsini verir.
         x = grid.gridSizeX;
-        z = grid.gridSizeY;
+        z = grid.gridSizeZ;
         nodeDiameter = (int)grid.nodeDiameter;
         CreateRooms();
         PathFunctions();
@@ -125,6 +126,8 @@ public class RoomGeneration : MonoBehaviour
             Vector3 startRoomWorldPos= grid.CalculateWorldPoint((int)startRoomPos.x, (int)startRoomPos.z);
             GameObject startRoomTemp = Instantiate(room, startRoomWorldPos, Quaternion.identity);
             DrawRoom((int)startRoomPos.x, (int)startRoomPos.z, startRoomTemp);
+            Node currentNode= grid.NodeFromWorldPoint(startRoomWorldPos);
+            currentNode.walls[0].wallObject.SetActive(false);
             roomsPos.Add(new Point(startRoomWorldPos.x, startRoomWorldPos.z));
             startRoomTemp.transform.SetParent(parentTransform);
         }
@@ -175,7 +178,7 @@ public class RoomGeneration : MonoBehaviour
             int xRandom = Randomize(3, x -2);
             int zRandom = Randomize(3, z - 2);
             //Debug.Log("Random x: " + xRandom + " Random z: " + zRandom);
-            if (xRandom <= x - xLocal -2 && zRandom <= z - zLocal -2 && CheckRoom(xRandom, zRandom, room))
+            if (grid.IsRoomInsideOfGrid(x,xLocal,xRandom,z,zLocal,zRandom)&& CheckRoom(xRandom, zRandom, room))
             {
                 return new Vector3(xRandom,zRandom);
             }

@@ -78,8 +78,8 @@ public class Node
 }
 public enum FloorType
 {
-    White,// Walkable
+    whiteFloorRoomId,// Walkable
     Red,// Unwalkable
-    Yellow,//Path
+    yellowFloorRoomId,//Path
     None,
 }

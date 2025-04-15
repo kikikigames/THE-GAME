@@ -54,6 +54,9 @@ public class CharacterMovement : MonoBehaviour
         Movement();
         StaminaControl();
     }
+    /// <summary>
+    /// Hareket fonksiyonu. Yürüyüş ve koşma hızını ayarlar, zıplama ve yer çekimini kontrol eder.
+    /// </summary>
     private void Movement()
     {
         if (GroundCheck() && velocity.y < 0)
@@ -84,10 +87,17 @@ public class CharacterMovement : MonoBehaviour
 
         controller.Move(velocity * Time.deltaTime);
     }
+    /// <summary>
+    /// Zemin kontrolü. Oyuncunun zeminle temasını kontrol eder.
+    /// </summary>
+    /// <returns></returns>
     private bool GroundCheck()
     {
         return isGrounded = Physics.CheckSphere(transform.position + Vector3.down * (controller.height / 2), groundDistance, groundMask);
     }
+    /// <summary>
+    /// Stamina kontrolü. Koşma ve zıplama sırasında stamina'yı azaltır, yürüyüş sırasında ise stamina'yı yeniler.
+    /// </summary>
     private void StaminaControl()
     {
         if (!isRunning)
@@ -101,6 +111,10 @@ public class CharacterMovement : MonoBehaviour
             currentStamina = 0;
         }
     }
+    /// <summary>
+    /// Stamina'nın sıfır olduktan sonra tekrar koşabilmesi için bekleme süresi ayarlama.
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator CanRun()
     {
         if (!canRun)
@@ -109,11 +123,17 @@ public class CharacterMovement : MonoBehaviour
         yield return new WaitForSeconds(canRunDelayTime);
         canRun = true;
     }
+    /// <summary>
+    /// Stamina'yı azaltma fonksiyonu. Koşma sırasında stamina'yı azaltır.
+    /// </summary>
     public void DrainStamina()
     {
         currentStamina -= staminaDrain * Time.deltaTime;
         staminaBar.SetStamina(currentStamina);
     }
+    /// <summary>
+    /// Stamina'yı yenileme fonksiyonu. Yürüyüş sırasında stamina'yı yeniler.
+    /// </summary>
     private void RegenerateStamina()
     {
         if (currentStamina <= maxStamina - 0.01)
@@ -126,6 +146,9 @@ public class CharacterMovement : MonoBehaviour
             staminaBar.SetStamina(currentStamina);
         }
     }
+    /// <summary>
+    /// Zıplama fonksiyonu. Oyuncunun zıplamasını kontrol eder.
+    /// </summary>
     private void Jump()
     {
         if (Input.GetKeyDown(jumpKey) && isGrounded && canJump)
@@ -134,6 +157,10 @@ public class CharacterMovement : MonoBehaviour
             StartCoroutine(nameof(CanJump));
         }
     }
+    /// <summary>
+    /// Tekrar zıplama kontrolü için bekleme süresi ayarlama.
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator CanJump()
     {
         if (!canJump)
